@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Amazon EKS - Managed Node Group
+
+Metadata:
+  "AWS::CloudFormation::Interface":
+    ParameterGroups:
+      - Label:
+          default: EKS Cluster
+        Parameters:
+          - ClusterName
+      - Label:
+          default: Worker Node Configuration
+        Parameters:
+          - NodeGroupName
+          - NodeAutoScalingGroupMinSize
+          - NodeAutoScalingGroupDesiredSize
+          - NodeAutoScalingGroupMaxSize
+          - NodeInstanceType
+          - NodeImageId
+          - NodeAMIType
+          - BootstrapArguments
+      - Label:
+          default: Worker Network Configuration
+        Parameters:
+          - Subnets
+Parameters:
+  BootstrapArguments:
+    Type: String
+    Default: ""
+    Description: "Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
+  ClusterName:
+    Type: String
+    Description: The cluster name provided when the cluster was created. If it is incorrect, nodes will not be able to join the cluster.
+  
+  NodeAutoScalingGroupDesiredSize:
+    Type: Number
+    Default: 3
+    Description: Desired capacity of Node Group ASG.
+
+  NodeAutoScalingGroupMaxSize:
+    Type: Number
+    Default: 4
+    Description: Maximum size of Node Group ASG. Set to at least 1 greater than NodeAutoScalingGroupDesiredSize.
+
+  NodeAutoScalingGroupMinSize:
+    Type: Number
+    Default: 1
+    Description: Minimum size of Node Group ASG.
+
+  NodegroupName:
+    Type: String
+    Description: Unique identifier for the Node Group.
+
+  NodeImageId:
+    Type: String
+    Default: ""
+    Description: (Optional) Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
+  
+  NodeAMIType:
+    Type: String
+    Default: "AL2_x86_64"
+    Description: Which type of AMI to use.
+    AllowedValues: 
+      - AL2_ARM_64 
+      - AL2_x86_64 
+      - AL2_x86_64_GPU 
+      - BOTTLEROCKET_ARM_64 
+      - BOTTLEROCKET_x86_64 
+      - CUSTOM
+
+  CapacityType:
+    Type: String
+    Default: "ON_DEMAND"
+    Description: Do you want on-demand or spot instances
+    AllowedValues: 
+      - ON_DEMAND 
+      - SPOT
+
+  Subnets:
+    Type: "List<AWS::EC2::Subnet::Id>"
+    Description: The subnets where workers can be created.
+
+Mappings:
+  PartitionMap:
+    aws:
+      EC2ServicePrincipal: "ec2.amazonaws.com"
+    aws-us-gov:
+      EC2ServicePrincipal: "ec2.amazonaws.com"
+    aws-cn:
+      EC2ServicePrincipal: "ec2.amazonaws.com.cn"
+    aws-iso:
+      EC2ServicePrincipal: "ec2.c2s.ic.gov"
+    aws-iso-b:
+      EC2ServicePrincipal: "ec2.sc2s.sgov.gov"
+  
+Resources:
+  
+  NodeInstanceRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      RoleName : "MNGNodeRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - !FindInMap [PartitionMap, !Ref "AWS::Partition", EC2ServicePrincipal]
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy"
+        - !Sub "arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+      Path: /
+  
+  EKSNodegroup:
+    Type: 'AWS::EKS::Nodegroup'
+    Properties:
+      AmiType: !Ref NodeAMIType
+      CapacityType: !Ref CapacityType
+      InstanceTypes: [t3.medium, m5.large]
+      ClusterName: !Ref ClusterName
+      NodeRole: !GetAtt NodeInstanceRole.Arn
+      NodegroupName: !Ref NodegroupName
+      ScalingConfig:
+        MinSize: !Ref NodeAutoScalingGroupMinSize
+        DesiredSize: !Ref NodeAutoScalingGroupDesiredSize
+        MaxSize: !Ref NodeAutoScalingGroupMaxSize
+      Labels:
+        Key1: Value1
+        Key2: Value2
+      Subnets: !Ref Subnets
