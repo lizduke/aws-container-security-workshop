@@ -1,41 +1,174 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
-Description: This AWS CloudFormation Template that configures the Container DevSecOps workshop. 
+Description: This AWS CloudFormation Template that configures the Container DevSecOps workshop starting environment. 
 
 Parameters:
-
   BucketName:
     Type: String
-    Default: sa-security-specialist-workshops-us-east-2
+    Default: aws-container-security-workshop
     Description: Source bucket for workshop CloudFormation yaml's
+  EnvironmentName:
+    Type: String
+    Default: aws-container-security-workshop
+    Description:  Prefix for resources
+  KeyName:
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  VPCCIDRBlock:
+    Description: ' The IP address range used by the New VPC.'
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 10.0.0.0/21
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  PublicSubnetCIDR1:
+    Description: ' Valid Subnet within the New VPC CIDR Range to be used for Public Subnet'
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 10.0.0.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  PublicSubnetCIDR2:
+    Description: ' Valid Subnet within the New VPC CIDR Range to be used for Public Subnet'
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 10.0.1.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  PublicSubnetCIDR3:
+    Description: ' Valid Subnet within the New VPC CIDR Range to be used for Public Subnet'
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 10.0.2.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  PrivateSubnetCIDR1:
+    Description: ' Valid Subnet within the New VPC CIDR Range to be used for Private Subnet'
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 10.0.3.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  PrivateSubnetCIDR2:
+    Description: ' Valid Subnet within the New VPC CIDR Range to be used for Private Subnet'
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 10.0.4.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  PrivateSubnetCIDR3:
+    Description: ' Valid Subnet within the New VPC CIDR Range to be used for Private Subnet'
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    Default: 10.0.5.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  AZ1:
+    Description: The AZ for Public1 and Private1 Subnets
+    Type: 'AWS::EC2::AvailabilityZone::Name'
+  AZ2:
+    Description: The AZ for Public2 and Private2 Subnets
+    Type: 'AWS::EC2::AvailabilityZone::Name'
+  AZ3:
+    Description: The AZ for Public3 and Private3 Subnets
+    Type: 'AWS::EC2::AvailabilityZone::Name'
+  EKSClusterName:
+    Description: The name for your EKS cluster
+    Type: String
+  KubernetesVersion: 
+     Description: The version of k8s deployed to your cluster. Enter 1.20, 1.21 or 1.22, default is 1.22
+     Type: String
+     Default: 1.22
+     AllowedValues:
+      - 1.20
+      - 1.21
+      - 1.22
+  EKSIAMRoleName:
+    Description: The name for your EKS IAM Role
+    Type: String
+    Default: EKSClusterRole
+  NodeAutoScalingGroupDesiredSize:
+    Type: String
+    Default: 3
+    Description: Desired capacity of Node Group ASG.
+  NodeAutoScalingGroupMaxSize:
+    Type: String
+    Default: 4
+    Description: Maximum size of Node Group ASG. Set to at least 1 greater than NodeAutoScalingGroupDesiredSize.
+  NodeAutoScalingGroupMinSize:
+    Type: String
+    Default: 1
+    Description: Minimum size of Node Group ASG.
+  NodegroupName:
+    Type: String
+    Description: Unique identifier for the Node Group. 
+  NodeAMIType:
+    Type: String
+    Default: "AL2_x86_64"
+    Description: Which type of AMI to use.
+    AllowedValues: 
+      - AL2_ARM_64 
+      - AL2_x86_64 
+      - AL2_x86_64_GPU 
+      - BOTTLEROCKET_ARM_64 
+      - BOTTLEROCKET_x86_64 
+      - CUSTOM
+  CapacityType:
+    Type: String
+    Default: "ON_DEMAND"
+    Description: Do you want on-demand or spot instances
+    AllowedValues: 
+      - ON_DEMAND 
+      - SPOT
+
 
 Resources:
-
-  AnchoreVpcStack:
+  EKSClusterVpcStack:
     Type: AWS::CloudFormation::Stack
     Properties:
       Parameters:
-        EnvironmentName: container-devsecops-wksp
-      TemplateURL: !Join [ '/', [ 'https://s3.amazonaws.com', !Ref BucketName, 'devsecops/containers/anchore-vpc.yml'  ] ]
-
-  AnchoreStack:
-    DependsOn: AnchoreVpcStack
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      Parameters:
-        ResourceName: container-devsecops-wksp
         BucketName: !Ref BucketName
-      TemplateURL: !Join [ '/', [ 'https://s3.amazonaws.com', !Ref BucketName, 'devsecops/containers/anchore-fargate.yml'  ] ]
+        KeyName: !Ref KeyName
+        EnvironmentName: !Ref EnvironmentName
+        VPCCIDRBlock: !Ref VPCCIDRBlock
+        PublicSubnetCIDR1: !Ref PublicSubnetCIDR1
+        PublicSubnetCIDR2: !Ref PublicSubnetCIDR2
+        PublicSubnetCIDR3: !Ref PublicSubnetCIDR3
+        PrivateSubnetCIDR1: !Ref PrivateSubnetCIDR1
+        PrivateSubnetCIDR2: !Ref PrivateSubnetCIDR2
+        PrivateSubnetCIDR3: !Ref PrivateSubnetCIDR3
+        AZ1: !Ref AZ1
+        AZ2: !Ref AZ2
+        AZ3: !Ref AZ3
+        EKSClusterName: !Ref EKSClusterName
+        KubernetesVersion: !Ref KubernetesVersion
+        EKSIAMRoleName: !Ref EKSIAMRoleName
+      TemplateURL: !Join [ '/', [ 'https://s3.amazonaws.com', !Ref BucketName, 'devsecops/containers/aws-eks-new-vpc.yaml'  ] ]
 
-  InitialPipeline:
-    DependsOn: AnchoreStack
+  ManagedNodeGroupStack:
+    DependsOn: EKSClusterVpcStack
     Type: AWS::CloudFormation::Stack
     Properties:
       Parameters:
-        ResourceName: container-devsecops-wksp
-        FailWhen: High
         BucketName: !Ref BucketName
-      TemplateURL: !Join [ '/', [ 'https://s3.amazonaws.com', !Ref BucketName, 'devsecops/containers/pipeline-setup.yml'  ] ]
-  
+        EnvironmentName: !Ref EnvironmentName
+        ClusterName: !Ref EKSClusterName
+        NodeAutoScalingGroupDesiredSize: !Ref NodeAutoScalingGroupDesiredSize
+        NodeAutoScalingGroupMaxSize:  !Ref NodeAutoScalingGroupMaxSize
+        NodeAutoScalingGroupMinSize:  !Ref NodeAutoScalingGroupMinSize
+        NodegroupName:  !Ref NodegroupName
+        NodeAMIType:  !Ref NodeAMIType
+        CapacityType:  !Ref CapacityType
+        PrivateSubnet1: !GetAtt EKSClusterVpcStack.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt EKSClusterVpcStack.Outputs.PrivateSubnet2
+        PrivateSubnet3: !GetAtt EKSClusterVpcStack.Outputs.PrivateSubnet3
+      TemplateURL: !Join [ '/', [ 'https://s3.amazonaws.com', !Ref BucketName, 'devsecops/containers/managed-nodegroup.yaml'  ] ]
 
 Outputs: {}

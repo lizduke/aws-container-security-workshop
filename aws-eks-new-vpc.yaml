@@ -1,104 +1,55 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: >-
   Builds a VPC with 3 public and 3 private subnets
-Metadata:
-  AWS::CloudFormation::Interface:
-    ParameterGroups:
-      - Label:
-          default: "Worker Network Configuration"
-        Parameters:
-          - VPCCIDRBlock
-          - PublicSubnetCIDR1
-          - PublicSubnetCIDR2
-          - PublicSubnetCIDR3
-          - PrivateSubnetCIDR1
-          - PrivateSubnetCIDR2
-          - PrivateSubnetCIDR3
 Parameters:
+  EnvironmentName:
+    Description: Environment for the Stack
+    Type: String
+  BucketName:
+    Description: Bucket where templates are stored
+    Type: String
   KeyName:
     Description: Name of an EC2 KeyPair to enable SSH access to the instance.
-    Type: 'AWS::EC2::KeyPair::KeyName'
-    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+    Type: String
   VPCCIDRBlock:
     Description: ' The IP address range used by the New VPC.'
     Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 10.0.0.0/21
-    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   PublicSubnetCIDR1:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Public Subnet'
     Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 10.0.0.0/24
-    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   PublicSubnetCIDR2:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Public Subnet'
     Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 10.0.1.0/24
-    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   PublicSubnetCIDR3:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Public Subnet'
     Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 10.0.2.0/24
-    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   PrivateSubnetCIDR1:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Private Subnet'
     Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 10.0.3.0/24
-    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   PrivateSubnetCIDR2:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Private Subnet'
     Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 10.0.4.0/24
-    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   PrivateSubnetCIDR3:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Private Subnet'
     Type: String
-    MinLength: '9'
-    MaxLength: '18'
-    Default: 10.0.5.0/24
-    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
-    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
   AZ1:
     Description: The AZ for Public1 and Private1 Subnets
-    Type: 'AWS::EC2::AvailabilityZone::Name'
+    Type: String
   AZ2:
     Description: The AZ for Public2 and Private2 Subnets
-    Type: 'AWS::EC2::AvailabilityZone::Name'
+    Type: String
   AZ3:
     Description: The AZ for Public3 and Private3 Subnets
-    Type: 'AWS::EC2::AvailabilityZone::Name'
+    Type: String
   EKSClusterName:
     Description: The name for your EKS cluster
     Type: String
   KubernetesVersion: 
      Description: The version of k8s deployed to your cluster. Enter 1.20, 1.21 or 1.22, default is 1.22
      Type: String
-     Default: 1.22
-     AllowedValues:
-      - 1.20
-      - 1.21
-      - 1.22
   EKSIAMRoleName:
     Description: The name for your EKS IAM Role
     Type: String
-    Default: EKSClusterRole
 Resources:
   StandardVPC:
     Type: 'AWS::EC2::VPC'
@@ -338,3 +289,12 @@ Outputs:
     Value: !Ref StandardVPC
     Export:
       Name: !Sub '${AWS::StackName}-VPCID'
+  PrivateSubnet1:
+    Description: The IDs of the created subnets.
+    Value: !Ref PrivateSubnet1
+  PrivateSubnet2:
+    Description: The IDs of the created subnets.
+    Value: !Ref PrivateSubnet2  
+  PrivateSubnet3:
+    Description: The IDs of the created subnets.
+    Value: !Ref PrivateSubnet3

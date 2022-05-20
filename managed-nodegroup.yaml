@@ -2,84 +2,43 @@ AWSTemplateFormatVersion: "2010-09-09"
 
 Description: Amazon EKS - Managed Node Group
 
-Metadata:
-  "AWS::CloudFormation::Interface":
-    ParameterGroups:
-      - Label:
-          default: EKS Cluster
-        Parameters:
-          - ClusterName
-      - Label:
-          default: Worker Node Configuration
-        Parameters:
-          - NodeGroupName
-          - NodeAutoScalingGroupMinSize
-          - NodeAutoScalingGroupDesiredSize
-          - NodeAutoScalingGroupMaxSize
-          - NodeInstanceType
-          - NodeImageId
-          - NodeAMIType
-          - BootstrapArguments
-      - Label:
-          default: Worker Network Configuration
-        Parameters:
-          - Subnets
 Parameters:
-  BootstrapArguments:
+  EnvironmentName:
+    Description: Environment for the Stack
     Type: String
-    Default: ""
-    Description: "Arguments to pass to the bootstrap script. See files/bootstrap.sh in https://github.com/awslabs/amazon-eks-ami"
+  BucketName:
+    Description: Bucket where templates are stored
+    Type: String
+    
   ClusterName:
     Type: String
-    Description: The cluster name provided when the cluster was created. If it is incorrect, nodes will not be able to join the cluster.
-  
+    
   NodeAutoScalingGroupDesiredSize:
-    Type: Number
-    Default: 3
-    Description: Desired capacity of Node Group ASG.
+    Type: String
 
   NodeAutoScalingGroupMaxSize:
-    Type: Number
-    Default: 4
-    Description: Maximum size of Node Group ASG. Set to at least 1 greater than NodeAutoScalingGroupDesiredSize.
-
+    Type: String
+    
   NodeAutoScalingGroupMinSize:
-    Type: Number
-    Default: 1
-    Description: Minimum size of Node Group ASG.
-
+    Type: String
+    
   NodegroupName:
     Type: String
-    Description: Unique identifier for the Node Group.
-
-  NodeImageId:
-    Type: String
-    Default: ""
-    Description: (Optional) Specify your own custom image ID. This value overrides any AWS Systems Manager Parameter Store value specified above.
-  
+    
   NodeAMIType:
     Type: String
-    Default: "AL2_x86_64"
-    Description: Which type of AMI to use.
-    AllowedValues: 
-      - AL2_ARM_64 
-      - AL2_x86_64 
-      - AL2_x86_64_GPU 
-      - BOTTLEROCKET_ARM_64 
-      - BOTTLEROCKET_x86_64 
-      - CUSTOM
-
+    
   CapacityType:
     Type: String
-    Default: "ON_DEMAND"
-    Description: Do you want on-demand or spot instances
-    AllowedValues: 
-      - ON_DEMAND 
-      - SPOT
+    
+  PrivateSubnet1:
+    Type: String
 
-  Subnets:
-    Type: "List<AWS::EC2::Subnet::Id>"
-    Description: The subnets where workers can be created.
+  PrivateSubnet2: 
+    Type: String
+
+  PrivateSubnet3: 
+    Type: String
 
 Mappings:
   PartitionMap:
@@ -131,4 +90,7 @@ Resources:
       Labels:
         Key1: Value1
         Key2: Value2
-      Subnets: !Ref Subnets
+      Subnets:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+        - !Ref PrivateSubnet3
