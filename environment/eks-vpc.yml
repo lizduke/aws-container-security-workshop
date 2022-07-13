@@ -8,30 +8,41 @@ Parameters:
   BucketName:
     Description: Bucket where templates are stored
     Type: String
-  KeyName:
-    Description: Name of an EC2 KeyPair to enable SSH access to the instance.
-    Type: String
   VPCCIDRBlock:
     Description: ' The IP address range used by the New VPC.'
     Type: String
+    Default: 10.0.0.0/21
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
   PublicSubnetCIDR1:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Public Subnet'
     Type: String
+    Default: 10.0.0.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
   PublicSubnetCIDR2:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Public Subnet'
     Type: String
+    Default: 10.0.1.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
   PublicSubnetCIDR3:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Public Subnet'
     Type: String
+    Default: 10.0.2.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
   PrivateSubnetCIDR1:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Private Subnet'
     Type: String
+    Default: 10.0.3.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
   PrivateSubnetCIDR2:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Private Subnet'
     Type: String
+    Default: 10.0.4.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
   PrivateSubnetCIDR3:
     Description: ' Valid Subnet within the New VPC CIDR Range to be used for Private Subnet'
     Type: String
+    Default: 10.0.5.0/24
+    AllowedPattern: '(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})/(\d{1,2})'
   AZ1:
     Description: The AZ for Public1 and Private1 Subnets
     Type: String
@@ -44,12 +55,19 @@ Parameters:
   EKSClusterName:
     Description: The name for your EKS cluster
     Type: String
+    Default: EKSDevSec
   KubernetesVersion: 
      Description: The version of k8s deployed to your cluster. Enter 1.20, 1.21 or 1.22, default is 1.22
      Type: String
+     Default: 1.22
+     AllowedValues:
+      - 1.20
+      - 1.21
+      - 1.22
   EKSIAMRoleName:
     Description: The name for your EKS IAM Role
     Type: String
+    Default: EKSClusterRole
 Resources:
   StandardVPC:
     Type: 'AWS::EC2::VPC'
@@ -298,3 +316,6 @@ Outputs:
   PrivateSubnet3:
     Description: The IDs of the created subnets.
     Value: !Ref PrivateSubnet3
+  EKSClusterName:
+    Description: Name of EKS Cluster
+    Value: !Ref EKSClusterName

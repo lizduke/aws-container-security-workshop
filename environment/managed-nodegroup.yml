@@ -15,21 +15,38 @@ Parameters:
     
   NodeAutoScalingGroupDesiredSize:
     Type: String
-
+    Default: 3
+    Description: Desired capacity of Node Group ASG.
   NodeAutoScalingGroupMaxSize:
     Type: String
-    
+    Default: 4
+    Description: Maximum size of Node Group ASG. Set to at least 1 greater than NodeAutoScalingGroupDesiredSize.
   NodeAutoScalingGroupMinSize:
     Type: String
-    
+    Default: 1
+    Description: Minimum size of Node Group ASG.
   NodegroupName:
     Type: String
-    
+    Default: EKSDevSec-ng
+    Description: Unique identifier for the Node Group. 
   NodeAMIType:
     Type: String
-    
+    Default: "AL2_x86_64"
+    Description: Which type of AMI to use.
+    AllowedValues: 
+      - AL2_ARM_64 
+      - AL2_x86_64 
+      - AL2_x86_64_GPU 
+      - BOTTLEROCKET_ARM_64 
+      - BOTTLEROCKET_x86_64 
+      - CUSTOM
   CapacityType:
     Type: String
+    Default: "ON_DEMAND"
+    Description: Do you want on-demand or spot instances
+    AllowedValues: 
+      - ON_DEMAND 
+      - SPOT
     
   PrivateSubnet1:
     Type: String
